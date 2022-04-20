@@ -1,0 +1,8 @@
+﻿    @foreach (var guess in Guesses)
+    {
+        <GameRow Guess=@guess />
+    }
+
+@code {
+    [Parameter] public List<Guess> Guesses { get; set; } = null!;
+}

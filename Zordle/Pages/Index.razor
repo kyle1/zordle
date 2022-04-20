@@ -1,0 +1,115 @@
+﻿@page "/"
+@using System.Reflection
+@using Zordle.Components
+
+<PageTitle>Zordle</PageTitle>
+
+<div class="container">
+    <GameBoard
+        Guesses=@Guesses
+    />
+    <Keyboard
+        Guesses=@Guesses
+        Solution=@SolutionWord
+        OnChar=HandleCharClick
+        OnEnter=HandleEnterClick
+        OnBackspace=HandleBackspace
+    />
+    <br />
+
+</div>
+
+
+@code {
+
+    private string _solutionWord { get; set; } = "FROST";
+
+    public string SolutionWord
+    {
+        get => _solutionWord;
+        set
+        {
+            _solutionWord = GetRandomSolutionWord();
+        }
+    }
+
+
+    private List<char> guessedLetters = new List<char>();
+
+    private List<Guess> Guesses = new List<Guess>()
+    {
+        new Guess(),
+        new Guess(),
+        new Guess(),
+        new Guess(),
+        new Guess(),
+        new Guess()
+    };
+
+    protected override void OnInitialized()
+    {
+        //var random = new Random();
+        //var index = random.Next(Constants.Words.Count());
+        //_solutionWord = Constants.Words[index];
+        //StateHasChanged();
+        
+    }
+
+    private string GetRandomSolutionWord()
+    {
+        var random = new Random();
+        var index = random.Next(Constants.Words.Count());
+        var word = Constants.Words[index];
+        return word;
+    }
+
+    private void HandleCharClick(char c)
+    {
+        var currentGuess = Guesses.First(guess => !guess.IsSubmitted);
+        if (currentGuess.LetterTiles.Count == 5) return;
+
+        var tile = new GameTile { Letter = c, Status = TileStatusEnum.Empty };
+        currentGuess.LetterTiles.Add(tile);
+    }
+
+    private void HandleEnterClick()
+    {
+        var currentGuess = Guesses.First(guess => !guess.IsSubmitted);
+        if (currentGuess.LetterTiles.Count != 5) return;
+
+        currentGuess.IsSubmitted = true;
+        for (var column = 0; column < 5; column++)
+        {
+            var tile = currentGuess.LetterTiles[column];
+            if (!guessedLetters.Contains(tile.Letter))
+            {
+                guessedLetters.Add(tile.Letter);
+            }
+
+            tile.Status = GetTileStatus(tile.Letter, column);
+        }
+    }
+
+    private void HandleBackspace()
+    {
+        var currentGuess = Guesses.First(guess => !guess.IsSubmitted);
+        if (currentGuess.LetterTiles.Count == 0) return;
+
+        currentGuess.LetterTiles.RemoveAt(currentGuess.LetterTiles.Count - 1);        
+    }
+
+    private TileStatusEnum GetTileStatus(char letter, int columnPosition)
+    {
+        if (letter == SolutionWord[columnPosition])
+        {
+            return TileStatusEnum.Correct;
+        }
+        
+        if (SolutionWord.Contains(letter))
+        {
+            return TileStatusEnum.Present;
+        }
+
+        return TileStatusEnum.Absent;      
+    }
+}

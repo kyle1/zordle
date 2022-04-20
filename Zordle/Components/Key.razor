@@ -1,0 +1,30 @@
+﻿<button key=@Value class="kb-btn @GetTileClass(Status)" @onclick="HandleClick">@Value</button>
+
+@code {
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public TileStatusEnum Status { get; set; } = TileStatusEnum.Empty;
+    [Parameter] public EventCallback<string> OnClick { get; set; }
+
+    private async Task HandleClick()
+    {
+        Console.WriteLine($"KeyboardButton: {Value}");
+        await OnClick.InvokeAsync(Value);
+    }
+
+    private string GetTileClass(TileStatusEnum status)
+    {
+        switch (status)
+        {
+            case TileStatusEnum.Empty:
+                return "key-btn";
+            case TileStatusEnum.Absent:
+                return "absent";
+            case TileStatusEnum.Present:
+                return "present";
+            case TileStatusEnum.Correct:
+                return "correct";
+            default:
+                return "";
+        }
+    }
+}

@@ -1,0 +1,32 @@
+﻿<div class="tile-row">
+    @foreach (var tile in @Guess.LetterTiles)
+    {
+        <div class="tile @GetTileClass(tile.Status)">@tile.Letter</div>
+    }
+    @for (var i = 0; i < 5 - @Guess.LetterTiles.Count; i++)
+    {
+        <div class="tile"></div>
+    }
+</div>
+
+
+@code {
+    [Parameter] public Guess Guess { get; set; } = null;
+
+    private string GetTileClass(TileStatusEnum status)
+    {
+        switch (status)
+        {
+            case TileStatusEnum.Empty:
+                return "empty";
+            case TileStatusEnum.Absent:
+                return "absent";
+            case TileStatusEnum.Present:
+                return "present";
+            case TileStatusEnum.Correct:
+                return "correct";
+            default:
+                return "";
+        }
+    }
+}

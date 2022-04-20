@@ -1,0 +1,118 @@
+﻿<div>
+    <div class="kb-row">
+        @foreach (var key in new List<string> { "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P" })
+        {
+            <Key
+                Value=@key
+                Status=@(statuses.ContainsKey(key[0]) ? statuses[key[0]] : TileStatusEnum.Empty)
+                OnClick=HandleKeyClick
+            />
+        }
+    </div>
+    <div class="kb-row">
+        @foreach (var key in new List<string> { "A", "S", "D", "F", "G", "H", "J", "K", "L" })
+        {
+            <Key
+                Value=@key
+                Status=@(statuses.ContainsKey(key[0]) ? statuses[key[0]] : TileStatusEnum.Empty)
+                OnClick=HandleKeyClick
+            />
+        }
+    </div>
+    <div class="kb-row">
+        <Key
+            Value="ENTER"     
+            Status=@TileStatusEnum.Empty
+            OnClick=HandleKeyClick
+        />
+        @foreach (var key in new List<string> { "Z", "X", "C", "V", "B", "N", "M"} )
+        {
+            <Key
+                Value=@key
+                Status=@(statuses.ContainsKey(key[0]) ? statuses[key[0]] : TileStatusEnum.Empty)
+                OnClick=HandleKeyClick
+            />
+        }
+        <Key
+            Value="BKSP"
+            Status=@TileStatusEnum.Empty
+            OnClick=HandleKeyClick
+        />
+    </div>
+</div> 
+
+@code {
+    [Parameter] public List<Guess> Guesses { get; set; } = null!;
+    [Parameter] public string Solution { get; set; } = null!;
+    [Parameter] public EventCallback<char> OnChar { get; set; }
+    [Parameter] public EventCallback OnEnter { get; set; }
+    [Parameter] public EventCallback OnBackspace { get; set; }
+
+    private Dictionary<char, TileStatusEnum> statuses { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        Console.Write("Keyboard: OnInitialized");
+        statuses = GetStatuses();
+    }
+
+    private Dictionary<char, TileStatusEnum> GetStatuses()
+    {
+        var dict = new Dictionary<char, TileStatusEnum>();
+        foreach (var guess in Guesses)
+        {
+            var letters = guess!.LetterTiles.Select(tile => tile.Letter).ToList();
+
+            for (var i = 0; i < guess.LetterTiles.Count; i++)
+            {
+                if (!Solution.Contains(letters[i]))
+                {
+                    if (!dict.ContainsKey(letters[i]))
+                    {
+                        dict.Add(letters[i], TileStatusEnum.Absent);    
+                    }
+                }
+                else if (letters[i] == Solution[i])
+                {
+                    if (!dict.ContainsKey(letters[i]))
+                    {
+                        dict.Add(letters[i], TileStatusEnum.Correct);
+                    }
+                    else
+                    {
+                        dict[letters[i]] = TileStatusEnum.Correct;
+                    }
+                }
+                else
+                {
+                    if (!dict.ContainsKey(letters[i]))
+                    {
+                        dict.Add(letters[i], TileStatusEnum.Present);
+                    }
+                    else if (dict[letters[i]] == TileStatusEnum.Empty)
+                    {
+                        dict[letters[i]] = TileStatusEnum.Present;
+                    }
+                }
+            }
+        }
+        return dict;
+    }
+
+    private async void HandleKeyClick(string value)
+    {
+        if (value == "ENTER")
+        {
+            await OnEnter.InvokeAsync();
+            statuses = GetStatuses();
+        }
+        else if (value == "BKSP")
+        {
+            await OnBackspace.InvokeAsync();
+        }
+        else
+        {
+            await OnChar.InvokeAsync(value[0]);
+        }
+    }
+}
